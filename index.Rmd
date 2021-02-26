@@ -1,0 +1,681 @@
+---
+title: "Stanislaus County TUPE Tracking Dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    theme: cerulean
+    orientation: rows
+    vertical_layout: fill
+    source_code: embed
+---
+
+```{r Load Packages, echo=FALSE}
+#Working Directory and Packages
+setwd("~/Desktop/UCSD/TUPE/Evaluation/Dashboard/TUPEDashboards/GranteeDashboards/Stanislaus.Website")
+
+library(flexdashboard)
+library(knitr)
+library(DT)
+library(rpivotTable)
+library(ggplot2)
+library(plotly)
+library(plyr)
+library(dplyr)
+library(readxl)
+library(tidyverse)
+library(crosstalk)
+library(htmltools)
+library(rgdal)
+library(scatterD3)
+library(scales)
+library(formattable)
+library(crosstalk)
+```
+```{r Curriculum}
+#Curriculum
+Curriculum <- read_excel("~/Desktop/UCSD/TUPE/Evaluation/Dashboard/TUPEDashboards/GranteeDashboards/StanislausData/Curriculum Tracking Log.xlsm")
+
+Curriculum <- rename(Curriculum,
+                     SchoolName     = `School Name`,
+                     
+                     TUPEMember     = `Name of TUPE Team member completing log`,
+                     
+                     Session        = `What session are you reporting for?`,
+                     
+                     Administer     = `Did your school site administer curriculum this session?`,
+                     
+                     WhenAdmin      = `If no, when will your site be administering curriculum?`,
+                     
+                     CompletionDate = `Completion date`,
+                     
+                     Reach          = `Total Number of Completers (Students enrolled in your class) Please enter numbers only.`
+                       )
+
+##Recode variables
+Curriculum$Timestamp                       <- as.Date(Curriculum$Timestamp)
+Curriculum$SchoolName                      <- as.factor(Curriculum$SchoolName)
+Curriculum$TUPEMember                      <- as.factor(Curriculum$TUPEMember)
+Curriculum$Session                         <- as.factor(Curriculum$Session)
+Curriculum$Administer                      <- as.factor(Curriculum$Administer)
+Curriculum$WhenAdmin                       <- as.factor(Curriculum$WhenAdmin)
+Curriculum$`Curriculum Administering`      <- as.factor(Curriculum$`Curriculum Administering` )
+
+Curriculum$ActivityType <- "Curriculum"
+
+```
+```{r MARS}
+#MARS 2020-2021
+MARS <- read_excel("~/Desktop/UCSD/TUPE/Evaluation/Dashboard/TUPEDashboards/GranteeDashboards/StanislausData/2020-2021 MARS LOG - PHAST PHASTjv PHASTrecruits.xlsx")
+
+MARS <- rename(MARS, SchoolName     = `SCHOOL/PARTNER AGENCY`)
+```
+```{r PHAST}
+#August 2020 PHAST
+PHAST.Aug <- read_excel("~/Desktop/UCSD/TUPE/Evaluation/Dashboard/TUPEDashboards/GranteeDashboards/StanislausData/08-August PHAST Monthly Activity Report.xlsm")
+
+PHAST.Aug <- rename(PHAST.Aug,
+                   SchoolName          = `What school are you reporting for?`,
+                   
+                   TUPEMember          = `Name of person completing this report?`,
+                   
+                   DescribeActivities  = `Please describe the outreach and club recruitment activities you conducted during the month. Include any club rush fairs, presentations for recruitment, flier distribution, announcements, etc.`,
+                   
+                   PHASTLead           = `How many PHAST club members helped lead the described activities? (Provide your best number estimate. Please respond in numbers only.)`,
+                   
+                   Signedup            = `How many students signed-up, regardless of whether they have actually joined the club or not? (Provide your best number estimate. Please respond in numbers only.)`,
+                   
+                   MeetingReach        = `On average, how many PHAST members attended those meetings? (Provide your best number estimate. Please respond in numbers only.)`,
+                   
+                   OtherActivities     = `Describe any other activities conducted this month?`,
+                   
+                   OtherReach          = `How many students did you reach overall in this other activity? (Provide your best number estimate. Please respond in numbers only.)`,
+                   
+                   NumberMeetings      = `How many PHAST meetings did you hold for this month?`,
+                   
+                   Achievements        = `Please describe any key achievements and successes accomplished during this month.`,
+                   
+                   Challenges          = `Please describe any challenges or barriers you faced during this month.`,
+                   
+                   TA                  = `Please make any suggestions on additional support or technical assistance we could provide to help overcome challenges and barriers, or improve the program in general.`)
+
+##Recode variables
+PHAST.Aug$Timestamp      <- as.Date(PHAST.Aug$Timestamp)
+PHAST.Aug$SchoolName     <- as.factor(PHAST.Aug$SchoolName)
+PHAST.Aug$TUPEMember     <- as.factor(PHAST.Aug$TUPEMember)
+PHAST.Aug$NumberMeetings <- as.numeric(PHAST.Aug$NumberMeetings)
+
+#September 2020 PHAST
+PHAST.Sep <- read_excel("~/Desktop/UCSD/TUPE/Evaluation/Dashboard/TUPEDashboards/GranteeDashboards/StanislausData/09-September PHAST Monthly Activity Report.xlsm")
+
+PHAST.Sep <- rename(PHAST.Sep,
+                   SchoolName          = `What school are you reporting for?`,
+                   
+                   TUPEMember          = `Name of person completing this report?`,
+                   
+                   DescribeActivities  = `Please describe the outreach and club recruitment activities you conducted during the month. Include any club rush fairs, presentations for recruitment, flier distribution, announcements, etc.`,
+                   
+                   PHASTLead           = `How many PHAST club members helped lead the described activities? (Provide your best number estimate. Please respond in numbers only.)`,
+                   
+                        Reach          = `How many students did you reach overall in this other activity? (Provide your best number estimate. Please respond in numbers only.)`,
+                   
+                   
+                   Signedup            = `How many students signed-up, regardless of whether they have actually joined the club or not? (Provide your best number estimate. Please respond in numbers only.)`,
+                   
+                   OtherActivities     = `Describe any other activities conducted this month?`,
+                   
+                   OtherReach          = `How many students did you reach overall in this other activity? (Provide your best number estimate. Please respond in numbers only.)`,
+                   
+                   NumberMeetings      = `How many PHAST meetings did you hold for this month?`,
+                   
+                   Achievements        = `Please describe any key achievements and successes accomplished during this month.`,
+                   
+                   Challenges          = `Please describe any challenges or barriers you faced during this month.`,
+                   
+                   TA                  = `Please make any suggestions on additional support or technical assistance we could provide to help overcome challenges and barriers, or improve the program in general.`,
+                   
+                   MeetingReach        = `On average, how many PHAST members attended those meetings? (Provide your best estimate.)`
+                   )
+
+##Recode variables
+PHAST.Sep$Timestamp      <- as.Date(PHAST.Sep$Timestamp)
+PHAST.Sep$SchoolName     <- as.factor(PHAST.Sep$SchoolName)
+PHAST.Sep$TUPEMember     <- as.factor(PHAST.Sep$TUPEMember)
+PHAST.Sep$NumberMeetings <- as.numeric(PHAST.Sep$NumberMeetings)
+
+
+
+#October 2020 PHAST 
+PHAST.Oct <- read_excel("~/Desktop/UCSD/TUPE/Evaluation/Dashboard/TUPEDashboards/GranteeDashboards/StanislausData/10-October PHAST Monthly Activity Report.xlsm")
+
+PHAST.Oct <- rename(PHAST.Oct,
+                   SchoolName          = `What school are you reporting for?`,
+                   
+                   TUPEMember          = `Name of person completing this report?`,
+                   
+                   DescribeActivities  = `Please describe activities conducted for Red Ribbon Week during this month. Include tabling events, presentations, announcements, art contests, decoration activities, etc.`,
+                   
+                   PHASTLead           = `How many PHAST club members helped lead the described activities? (Provide your best estimate.)`,
+                   
+                   Reach              = `How many students did you reach overall?     (Provide your best estimate)`,
+                   
+                   OtherActivities     = `Describe any other activities conducted this month?`,
+                   
+                   OtherReach          = `How many students did you reach overall in this other activity? (Provide your best estimate.)`,
+                   
+                   NumberMeetings      = `How many PHAST meetings did you hold for this month?`,
+                   
+                   MeetingReach        = `On average, how many PHAST members attended those meetings? (Provide your best estimate.)`,       
+                   
+                   Achievements        = `Please describe any key achievements and successes accomplished during this month.`,
+                   
+                   Challenges          = `Please describe any challenges or barriers you faced during this month.`,
+                   
+                   TA                  = `Please make any suggestions on additional support or technical assistance we could provide to help overcome challenges and barriers, or improve the program in general.`
+)
+
+##Recode variables
+PHAST.Oct$Timestamp      <- as.Date(PHAST.Oct$Timestamp)
+PHAST.Oct$SchoolName     <- as.factor(PHAST.Oct$SchoolName)
+PHAST.Oct$TUPEMember     <- as.factor(PHAST.Oct$TUPEMember)
+PHAST.Oct$NumberMeetings <- as.numeric(PHAST.Oct$NumberMeetings)
+PHAST.Oct$PHASTLead      <- as.numeric(PHAST.Oct$PHASTLead)
+PHAST.Oct$Reach          <- as.numeric(PHAST.Oct$Reach)
+PHAST.Oct$OtherReach     <- as.numeric(PHAST.Oct$OtherReach)
+PHAST.Oct$MeetingReach   <- as.numeric(PHAST.Oct$MeetingReach)
+
+#November 2020 PHAST 
+PHAST.Nov <- read_excel("~/Desktop/UCSD/TUPE/Evaluation/Dashboard/TUPEDashboards/GranteeDashboards/StanislausData/11-November PHAST Monthly Activity Report.xlsm") 
+
+PHAST.Nov  <- rename(PHAST.Nov,
+                   SchoolName          = `What school are you reporting for?`,
+                   
+                   TUPEMember          = `Name of person completing this report?`,
+                   
+                   DescribeActivities  = `Please describe activities conducted for Great American Smoke-out during this month. Include tabling events, presentations, announcements, art contests, decoration activities, etc.`,
+                   
+                   PHASTLead           = `How many PHAST club members helped lead the described activities? (Provide best estimate.)`,
+                   
+                   Reach              = `How many students did you reach overall?     (Provide your best estimate.)`,
+                   
+                   OtherActivities     = `Describe any other activities conducted this month?`,
+                   
+                   OtherReach          = `How many students did you reach overall in this other activity? (Provide your best estimate.)`,
+                   
+                   NumberMeetings      = `How many PHAST meetings did you hold for this month?`,
+                   
+                   MeetingReach        = `On average, how many PHAST members attended those meetings? (Provide your best estimate.)`,       
+                   
+                   Achievements        = `Please describe any key achievements and successes accomplished during this month.`,
+                   
+                   Challenges          = `Please describe any challenges or barriers you faced during this month.`,
+                   
+                   TA                  = `Please make any suggestions on additional support or technical assistance we could provide to help overcome challenges and barriers, or improve the program in general.`
+)
+
+##Recode variables
+PHAST.Nov$Timestamp      <- as.Date(PHAST.Nov$Timestamp)
+PHAST.Nov$SchoolName     <- as.factor(PHAST.Nov$SchoolName)
+PHAST.Nov$TUPEMember     <- as.factor(PHAST.Nov$TUPEMember)
+PHAST.Nov$NumberMeetings <- as.numeric(PHAST.Nov$NumberMeetings)
+PHAST.Nov$Reach          <- as.numeric(PHAST.Nov$Reach)
+PHAST.Nov$OtherReach     <- as.numeric(PHAST.Nov$OtherReach)
+PHAST.Nov$MeetingReach   <- as.numeric(PHAST.Nov$MeetingReach)
+PHAST.Nov$PHASTLead      <- as.numeric(PHAST.Nov$PHASTLead)
+
+#December 2020 PHAST 
+PHAST.Dec <- read_excel("~/Desktop/UCSD/TUPE/Evaluation/Dashboard/TUPEDashboards/GranteeDashboards/StanislausData/12-December PHAST Monthly Activity Report.xlsm")
+
+
+PHAST.Dec  <- rename(PHAST.Dec,
+                   SchoolName          = `What school are you reporting for?`,
+                   
+                   TUPEMember          = `Name of person completing this report?`,
+                   
+                   MonthlyActivities  = `What monthly activities did PHAST members participate in?`,
+                   
+                   Reach              = `How many students did you reach overall?     (Provide your best estimate.)`,
+                   
+                   NumberofPhastMem   = `How many PHAST Members participated? (Numbers only)`,
+                   
+                   OtherActivities    = `Describe any other activities conducted this month?`,
+                   
+                   OtherReach         = `How many students did you reach overall in this other activity? (Provide your best estimate.)`,
+                   
+                   NumberMeetings      = `How many PHAST meetings did you hold for this month?`,
+                   
+                   MeetingReach        = `On average, how many PHAST members attended those meetings? (Provide your best estimate.)`,       
+                   
+                   Achievements        = `Please describe any key achievements and successes accomplished during this month.`,
+                   
+                   Challenges          = `Please describe any challenges or barriers you faced during this month.`,
+                   
+                   TA                  = `Please make any suggestions on additional support or technical assistance we could provide to help overcome challenges and barriers, or improve the program in general.`
+)
+
+##Recode variables
+PHAST.Dec$Timestamp      <- as.Date(PHAST.Dec$Timestamp)
+PHAST.Dec$SchoolName     <- as.factor(PHAST.Dec$SchoolName)
+PHAST.Dec$TUPEMember     <- as.factor(PHAST.Dec$TUPEMember)
+PHAST.Dec$NumberMeetings <- as.numeric(PHAST.Dec$NumberMeetings)
+PHAST.Dec$Reach          <- as.numeric(PHAST.Dec$Reach)
+PHAST.Dec$OtherReach     <- as.numeric(PHAST.Dec$OtherReach)
+PHAST.Dec$MeetingReach   <- as.numeric(PHAST.Dec$MeetingReach)
+
+#January 2021 PHAST 
+PHAST.Jan.21 <- read_excel("~/Desktop/UCSD/TUPE/Evaluation/Dashboard/TUPEDashboards/GranteeDashboards/StanislausData/01-January PHAST Monthly Activity Report.xlsm")
+
+
+PHAST.Jan.21  <- rename(PHAST.Jan.21,
+                   SchoolName          = `What school are you reporting for?`,
+                   
+                   TUPEMember          = `Name of person completing this report?`,
+                   
+                   MonthlyActivities  = `What monthly activities did you do?`,
+                   
+                   Reach              = `How many students did you reach overall?     (Provide your best estimate, numbers only)`,
+                   
+                   NumberofPhastMem   = `How many PHAST Members participated? (Numbers only)`,
+                   
+                   OtherActivities    = `Describe any other activities conducted this month?`,
+                   
+                   OtherReach         = `How many students did you reach overall in this other activity? (Provide your best estimate.)`,
+                   
+                   NumberMeetings      = `How many PHAST meetings did you hold for this month?`,
+                   
+                   MeetingReach        = `On average, how many PHAST members attended those meetings? (Provide your best estimate.)`,       
+                   
+                   Achievements        = `Please describe any key achievements and successes accomplished during this month.`,
+                   
+                   Challenges          = `Please describe any challenges or barriers you faced during this month.`,
+                   
+                   TA                  = `Please make any suggestions on additional support or technical assistance we could provide to help overcome challenges and barriers, or improve the program in general.`
+)
+
+##Recode variables
+PHAST.Jan.21$Timestamp      <- as.Date(PHAST.Jan.21$Timestamp)
+PHAST.Jan.21$SchoolName     <- as.factor(PHAST.Jan.21$SchoolName)
+PHAST.Jan.21$TUPEMember     <- as.factor(PHAST.Jan.21$TUPEMember)
+PHAST.Jan.21$NumberMeetings <- as.numeric(PHAST.Jan.21$NumberMeetings)
+PHAST.Jan.21$Reach          <- as.numeric(PHAST.Jan.21$Reach)
+PHAST.Jan.21$OtherReach     <- as.numeric(PHAST.Jan.21$OtherReach)
+PHAST.Jan.21$MeetingReach   <- as.numeric(PHAST.Jan.21$MeetingReach)
+```
+```{r PHAST JV}
+#September 2020 PHASTJV
+PHASTjv.Sep <- read_excel("~/Desktop/UCSD/TUPE/Evaluation/Dashboard/TUPEDashboards/GranteeDashboards/StanislausData/09 September PHASTjv Monthly Activity Report.xlsm")
+
+PHASTjv.Sep <- rename(PHASTjv.Sep,
+                   SchoolName          = `What school are you reporting for?`,
+                   
+                   TUPEMember          = `Name of person completing this report?`,
+                   
+                   DescribeActivities  = `Please describe the outreach and club recruitment activities you conducted during the month. Include any club rush fairs, presentations for recruitment, flier distribution, announcements, etc.`,
+                   
+                   PHASTLead           = `How many PHASTjv youth council members helped lead the described activities? (Provide your best number estimate. Please respond in numbers only.)`,
+                   
+                   Signedup            = `How many students signed up to join the youth council, regardless of whether they have actually joined the club or not? (Provide your best number estimate. Please respond in numbers only.)`,
+                   
+                   OtherActivities     = `Describe any other activities conducted this month?`,
+                   
+                   OtherReach          = `How many students did you reach overall in this other activity? (Provide your best number estimate. Please respond in numbers only.)`,
+                   
+                   NumberMeetings      = `How many PHAST JV meetings did you hold for this month?`,
+                   
+                   Achievements        = `Please describe any key achievements or successes accomplished during this month.`,
+                   
+                   Challenges          = `Please describe any challenges or barriers you faced during this month.`,
+                   
+                   TA                  = `Please make any suggestions on additional support or technical assistance we could provide to help overcome challenges and barriers, or improve the program in general.`,
+                   
+                   MeetingReach        = `On average, how many PHAST JV members attended those meetings? (Provide your best number estimate. Please respond in numbers only.)`)
+
+##Recode variables
+PHASTjv.Sep$Timestamp      <- as.Date(PHASTjv.Sep$Timestamp)
+PHASTjv.Sep$SchoolName     <- as.factor(PHASTjv.Sep$SchoolName)
+PHASTjv.Sep$TUPEMember     <- as.factor(PHASTjv.Sep$TUPEMember)
+PHASTjv.Sep$NumberMeetings <- as.numeric(PHASTjv.Sep$NumberMeetings)
+PHASTjv.Sep$PHASTLead      <- as.numeric(PHASTjv.Sep$PHASTLead)
+PHASTjv.Sep$MeetingReach   <- as.numeric(PHASTjv.Sep$MeetingReach)
+PHASTjv.Sep$OtherReach     <- as.numeric(PHASTjv.Sep$OtherReach)
+
+#October 2020 PHASTJV
+PHASTjv.Oct <- read_excel("~/Desktop/UCSD/TUPE/Evaluation/Dashboard/TUPEDashboards/GranteeDashboards/StanislausData/10 October PHASTjv Monthly Activity Report.xlsm")
+
+PHASTjv.Oct  <- rename(PHASTjv.Oct,
+                   SchoolName          = `What school are you reporting for?`,
+                   
+                   TUPEMember          = `Name of person completing this report?`,
+                   
+                   DescribeActivities  = `Please describe activities conducted for Red Ribbon Week during this month. Include tabling events, presentations, announcements, art contests, decoration activities, etc.`,
+                   
+                   PHASTLead           = `How many PHASTjv youth council members helped lead the described activities? (Provide your best estimate.)`,
+                   
+                  Reach                = `How many students did you reach overall? (Provide your best number estimate. Please respond in numbers only.)`,
+                  
+                  OtherActivities      = `Describe any other activities conducted this month?`,
+                  
+                  OtherReach           = `How many students did you reach overall in this other activity? (Provide your best number estimate. Please respond in numbers only.)`,
+                   
+                   
+                   NumberMeetings      = `How many PHAST JV meetings did you hold for this month?`,
+                  
+                  MeetingReach         = `On average, how many PHAST JV members attended those meetings? (Provide your best number estimate. Please respond in numbers only.)`,
+                   
+                   Achievements        = `Please describe any key achievements and successes accomplished during this month.`,
+                   
+                   Challenges          = `Please describe any challenges or barriers you faced during this month.`,
+                   
+                   TA                  = `Please make any suggestions on additional support or technical assistance we could provide to help overcome challenges and barriers, or improve the program in general.`)
+
+##Recode variables
+PHASTjv.Oct$Timestamp      <- as.Date(PHASTjv.Oct$Timestamp)
+PHASTjv.Oct$SchoolName     <- as.factor(PHASTjv.Oct$SchoolName)
+PHASTjv.Oct$TUPEMember     <- as.factor(PHASTjv.Oct$TUPEMember)
+PHASTjv.Oct$NumberMeetings <- as.numeric(PHASTjv.Oct$NumberMeetings)
+PHASTjv.Oct$PHASTLead      <- as.numeric(PHASTjv.Oct$PHASTLead)
+PHASTjv.Oct$MeetingReach   <- as.numeric(PHASTjv.Oct$MeetingReach)
+PHASTjv.Oct$OtherReach     <- as.numeric(PHASTjv.Oct$OtherReach)
+
+#January 2021 PHASTJV
+PHASTjv.Jan.21 <- read_excel("~/Desktop/UCSD/TUPE/Evaluation/Dashboard/TUPEDashboards/GranteeDashboards/StanislausData/01 January PHASTjv Monthly Activity Reports.xlsm")
+
+PHASTjv.Jan.21 <- rename(PHASTjv.Jan.21,
+                   SchoolName          = `What school are you reporting for?`,
+                   
+                   TUPEMember          = `Name of person completing this report?`,
+                   
+                   DescribeActivities  = `Please describe activities conducted during this month. Include tabling events, presentations, announcements, art contests, decoration activities, etc.`,
+                   
+                  PHASTLead           = `How many PHASTjv youth council members helped lead the described activities? (Provide your best number estimate. Please respond in numbers only.)`,
+                   
+                  Reach                = `How many students did you reach overall?  (Provide your best number estimate. Please respond in numbers only.)`,
+                 
+                   NumberMeetings      = `How many PHAST JV meetings did you hold for this month?`,
+                 
+                  MeetingReach         = `On average, how many PHAST JV members attended those meetings?  (Provide your best number estimate. Please respond in numbers only.)`,
+                   
+                   Achievements        = `Please describe any key achievements and successes accomplished during this month.`,
+                   
+                   Challenges          = `Please describe any challenges or barriers you faced during this month.`,
+                   
+                  TA                   = `Please make any suggestions on additional support or technical assistance we could provide to help overcome challenges and barriers, or improve the program in general.`)
+
+###Recode variables
+PHASTjv.Jan.21$Timestamp      <- as.Date(PHASTjv.Jan.21$Timestamp)
+PHASTjv.Jan.21$SchoolName     <- as.factor(PHASTjv.Jan.21$SchoolName)
+PHASTjv.Jan.21$TUPEMember     <- as.factor(PHASTjv.Jan.21$TUPEMember)
+PHASTjv.Jan.21$NumberMeetings <- as.numeric(PHASTjv.Jan.21$NumberMeetings)
+PHASTjv.Jan.21$PHASTLead      <- as.numeric(PHASTjv.Jan.21$PHASTLead)
+
+
+```
+```{r PHAST Recruits}
+#October 2020 PHAST Recruits
+PHASTRecruits.Oct <- read_excel("~/Desktop/UCSD/TUPE/Evaluation/Dashboard/TUPEDashboards/GranteeDashboards/StanislausData/10 October PHASTrecruits Campaign Activity Report.xlsm")
+
+PHASTRecruits.Oct  <- rename(PHASTRecruits.Oct,
+                   SchoolName          = `What school are you reporting for?`,
+                   
+                   TUPEMember          = `Name of person completing this report?`,
+                   
+                   DescribeActivities  = `Please describe activities conducted for Red Ribbon Week during this month. Include tabling events, presentations, announcements, art contests, decoration activities, etc.`,
+                   
+                   Reach               = `How many students did you reach overall? (Provide your best estimate.)`,
+
+                   Achievements        = `Please describe any key activities or achievements accomplished during this month.`,
+                   
+                   Challenges          = `Please describe any challenges or barriers you faced during this month.`,
+                   
+                   TA                  = `Please make any suggestions on additional support or technical assistance we could provide to help overcome challenges and barriers, or improve the program in general.`)
+
+##Recode variables
+PHASTRecruits.Oct$Timestamp      <- as.Date(PHASTRecruits.Oct$Timestamp)
+PHASTRecruits.Oct$SchoolName     <- as.factor(PHASTRecruits.Oct$SchoolName)
+PHASTRecruits.Oct$TUPEMember     <- as.factor(PHASTRecruits.Oct$TUPEMember)
+
+#November 2020 PHAST Recruits
+PHASTRecruits.Nov <- read_excel("~/Desktop/UCSD/TUPE/Evaluation/Dashboard/TUPEDashboards/GranteeDashboards/StanislausData/11 November PHASTrecruitsCampaign Activity Report.xlsm")
+
+PHASTRecruits.Nov  <- rename(PHASTRecruits.Nov,
+                   SchoolName          = `What school are you reporting for?`,
+                   
+                   TUPEMember          = `Name of person completing this report?`,
+                   
+                   DescribeActivities  = `Please describe activities conducted for Great American Smokeout during this month. Include tabling events, presentations, announcements, art contests, decoration activities, etc.`,
+                   
+                   Reach               = `How many students did you reach overall? (Provide your best estimate.)`,
+
+                   Achievements        = `Please describe any key activities or achievements accomplished during this month.`,
+                   
+                   Challenges          = `Please describe any challenges or barriers you faced during this month.`,
+                   
+                   TA                  = `Please make any suggestions on additional support or technical assistance we could provide to help overcome challenges and barriers, or improve the program in general.`)
+
+##Recode variables
+PHASTRecruits.Nov$Timestamp      <- as.Date(PHASTRecruits.Nov$Timestamp)
+PHASTRecruits.Nov$SchoolName     <- as.factor(PHASTRecruits.Nov$SchoolName)
+PHASTRecruits.Nov$TUPEMember     <- as.factor(PHASTRecruits.Nov$TUPEMember)
+
+
+
+
+
+```
+```{r Merge Data}
+#Merge PHAST
+PHAST.Merge <- full_join(PHAST.Aug, PHAST.Sep)
+PHAST.Merge <- full_join(PHAST.Merge, PHAST.Oct)
+PHAST.Merge <- full_join(PHAST.Merge, PHAST.Nov)
+PHAST.Merge <- full_join(PHAST.Merge, PHAST.Dec)
+PHAST.Merge <- full_join(PHAST.Merge, PHAST.Jan.21)
+
+PHAST.Merge$ActivityType <- "PHAST"
+
+#Merge PHASTjv
+PHAST.jv.Merge <- full_join(PHASTjv.Sep, PHASTjv.Oct)
+PHAST.jv.Merge <- full_join(PHAST.jv.Merge, PHASTjv.Jan.21)
+
+PHAST.jv.Merge$Signedup <- as.numeric(PHAST.jv.Merge$Signedup)
+
+PHAST.jv.Merge$ActivityType <- "PHASTjv"
+
+#Merge PHAST Recruits
+PHASTRecruits.Merge <- full_join(PHASTRecruits.Oct, PHASTRecruits.Nov)
+
+PHASTRecruits.Merge$ActivityType <- "PHASTRecruits"
+
+
+#MERGE ALL PHAST ACTIVITIES
+PHAST.Master <- full_join(PHAST.Merge, PHAST.jv.Merge)
+PHAST.Master <- full_join(PHAST.Master, PHASTRecruits.Merge)
+
+#MERGE PHAST with MARS and Curriculum
+THEMASTER <- full_join(PHAST.Master, 
+                       Curriculum)
+
+```
+
+# Fall 2020
+
+## row {data-height="80"}
+
+### TUPE Activities
+```{r Activities}
+valueBox(length(THEMASTER$ActivityType),
+         icon    = 'fa-briefcase',
+         color   = "#60E62E")
+```
+
+### PHAST Leaders
+
+```{r PHAST Reach}
+Phast <- sum(THEMASTER$PHASTLead, na.rm = TRUE)
+
+Phast <- round(Phast,
+                 digits = 1)
+valueBox(Phast, 
+         icon    = 'fa-crown',
+         color   = "#C6564E")
+```
+
+### Reach
+
+```{r Reach}
+U.Reach <- sum(THEMASTER$Reach, na.rm = TRUE)
+
+U.Reach <- round(U.Reach,
+                 digits = 1)
+valueBox(U.Reach, 
+         icon    = 'fa-school',
+         color   = "#924EC6")
+```
+
+### Other Reach
+
+```{r OReach}
+O.Reach <- sum(THEMASTER$OtherReach, na.rm = TRUE)
+
+O.Reach <- round(O.Reach,
+                 digits = 1)
+valueBox(O.Reach, 
+         icon    = 'fa-award',
+         color   = "#4EC6A0")
+```
+
+
+## row {.tabset}
+
+###  Activity Summary  
+
+```{r Pivot Table}
+
+rpivotTable(THEMASTER[ , c(1:10, 18)],
+            rows = c("ActivityType"),
+            cols = "TUPEMember",
+            rendererName = "Stacked Bar Chart",
+            width="100%", 
+            height="4px"
+            )
+
+```
+
+### Student Reach  
+
+```{r Reach Plot, fig.height=5, fig.width=5}
+Student_reach <- SharedData$new(THEMASTER, ~SchoolName)
+
+bscols(widths = c(2,2,10),
+       list(
+      filter_select("CRD",
+                    "TUPE Member",
+                    Student_reach,
+                    ~TUPEMember),
+      filter_select("SN",
+                    "School Name",
+                    Student_reach,
+                    ~SchoolName)),
+      ggplotly(ggplot(data=Student_reach, 
+                    aes(x=reorder(TUPEMember, Reach, FUN = sum),
+                        y=Reach,
+                        fill=ActivityType)) +
+                    geom_bar(stat="identity",
+                             position = "stack") +
+                    scale_y_continuous(limits = c(0, 350),
+                             breaks = c(0,
+                                        50,
+                                        100,
+                                        200,
+                                        350)) +
+                    scale_x_discrete(label=abbreviate) +
+                    theme_classic() + 
+                    theme(axis.text.x=element_blank(),
+                    axis.ticks.x=element_blank()) +
+                    labs(title = "Student Reach Profile",
+                         x     = "Coordinator Name",
+                         y     = "#Students"),
+          width = 1200,
+          height = 700))
+
+```
+
+### Other Reach  
+
+```{r Other Reach Plot}
+Other_reach <- SharedData$new(THEMASTER, ~SchoolName)
+
+bscols(widths = c(2,10),
+       list(
+      filter_select("CRD",
+                    "TUPE Member",
+                    Other_reach,
+                    ~TUPEMember),
+      filter_select("SN",
+                    "School Name",
+                    Other_reach,
+                    ~SchoolName)),
+ggplotly(ggplot(data=Other_reach, 
+                    aes(x=TUPEMember,
+                        y = OtherReach,
+                        fill=ActivityType)) +
+                    geom_bar(stat="identity",
+                             position = "stack") +
+                    scale_y_continuous(limits = c(0, 350),
+                             breaks = c(0,
+                                        50,
+                                        100,
+                                        200,
+                                        350)) +
+                    scale_x_discrete(label=abbreviate) +
+                    theme_classic() + 
+                    theme(axis.text.x=element_blank(),
+                    axis.ticks.x=element_blank()) +
+                    labs(title = "Student Other Reach Profile",
+                         x     = "Coordinator Name",
+                         y     = "#Students"),
+          width = 1200,
+          height = 700))
+
+                             
+```
+
+
+
+
+
+### MARS
+
+```{r MARS Plot}
+MARS_long <- pivot_longer(MARS[c(1:30), ], 
+                            cols = c(2:6),
+                            names_to = "MARS_Month",
+                            values_to = "Count",
+                            values_drop_na = TRUE)
+MARS_long$Count <- 1
+
+MARS_shared <- SharedData$new(MARS_long, ~SchoolName)
+
+
+ggplotly(ggplot(data=MARS_shared, 
+                    aes(x= reorder(SchoolName, Total, FUN = sum),
+                        y=Count,
+                        fill=MARS_Month)) +
+                    geom_bar(stat="identity",
+                             position = "stack") +
+                    scale_y_continuous(limits = c(0, 5)) +
+                    scale_x_discrete(label=abbreviate) +
+                    theme_classic() + 
+                    theme(axis.text.x=element_blank(),
+                    axis.ticks.x=element_blank()) +
+                    labs(title = "Student Other Reach Profile",
+                         x     = "School Name",
+                         y     = "Total")
+)
+
+                             
+```
+
+
+
+
+
+
+
